@@ -1,0 +1,303 @@
+h1 {
+  font-size: 2.5em;
+  color: #040413;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Softer shadow */
+  margin-bottom: 20px; /* Spacing below heading */
+  text-decoration: underline; /* Add underline to the heading */
+}
+
+.container {
+  max-width: auto; /* Adjusted to fit radio button size better */
+  margin: 40px auto;
+  background: #b4c29f;
+  padding: 32px; /* Spacious padding */
+  box-shadow: 0 8px 30px rgba(11, 199, 99, 0.1); /* Subtle shadow for depth */
+  text-align: center;
+  border-radius: 16px; /* More rounded corners */
+}
+
+.container form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Increased gap for better spacing */
+}
+
+.container .choices {
+button{
+  padding: 15px;
+  margin: 1px;
+  font-size: medium;
+
+}
+
+padding: 0px;
+  display: flex;
+  flex-direction: row;
+
+  justify-content: center; /* Center choices */
+  gap: 30px; /* Adjusted gap for better visibility */
+}
+
+.container form input[type="radio"] {
+  display: none; /* Hide the default radio button */
+}
+
+.container form label {
+  background: #c7d7c9;
+  color: #022722;
+  height: 40px; /* Adjusted height for labels */
+  width: 130px; /* Width for labels */
+  display: flex;
+  border-radius: 30px; 
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 300ms, color 300ms;
+}
+
+.container form label:before {
+  content: ''; /* Create a custom radio button */
+  display: inline-block;
+  width: 16px; /* Smaller radio button size */
+  height: 16px; /* Smaller radio button size */
+  border: 2px solid #a2ffbf; /* Border color */
+  border-radius: 50%; /* Round shape */
+  margin-right: 10px; /* Spacing between button and label */
+  background: white; /* Background for the button */
+  transition: background 300ms;
+}
+
+.container form input[type="radio"]:checked + label:before {
+  background: #024712; /* Background color when checked */
+}
+
+.container form input[type="radio"]:checked + label {
+  background: #024712;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.container textarea {
+  padding: 16px;
+  font-size: 18px;
+  height: 180px; /* Adjusted height for better visibility */
+  resize: none;
+  line-height: 1.6;
+  border: 1px solid #023047;
+  border-radius: 8px; /* Rounded corners */
+}
+
+.container button {
+  padding: 16px 28px; /* Larger buttons */
+  font-size: 20px; /* Slightly larger font size */
+  border: none;
+  border-radius: 8px; /* Rounded corners */
+  background: #e63946;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 300ms, transform 300ms; /* Smooth transitions */
+}
+
+.container button:hover {
+  background: #d62839; /* Darker shade on hover */
+  transform: translateY(-2px); /* Lift effect on hover */
+}
+
+.translation {
+  padding: 20px; /* Increased padding */
+  background: #edf2f4;
+  margin-top: 20px;
+  font-size: 18px;
+  line-height: 1.6;
+  height: 220px; /* Increased height for better visibility */
+  overflow-y: auto;
+  position: relative;
+  border-radius: 8px; /* Rounded corners */
+}
+
+.translation .copy-btn {
+  position: absolute;
+  width: 28px; /* Slightly larger button */
+  top: 12px;
+  right: 12px;
+  opacity: 0.9; /* More opaque */
+  cursor: pointer;
+}
+
+.notification {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 100px);
+  background: #023047;
+  color: #ffffff;
+  padding: 16px 32px; /* Increased padding */
+  border-radius: 30px;
+  transition: all 400ms ease;
+}
+
+.notification.active {
+  transform: translate(-50%, -30px);
+}
+
+.error {
+  color: rgb(134, 226, 13);
+  font-weight: bold; /* Make errors more noticeable */
+}
+
+
+
+.previous-translations {
+  margin-top: 20px; /* Space above the table */
+  background: #fff; /* White background for the table */
+  border-radius: 8px; /* Rounded corners */
+  overflow: hidden; /* To ensure the border radius is applied */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.previous-translations table {
+  width: 100%; /* Full width */
+  border-collapse: collapse; /* Collapse borders for a cleaner look */
+}
+
+.previous-translations th, .previous-translations td {
+  padding: 12px; /* Padding for table cells */
+  text-align: left; /* Left align text */
+  border-bottom: 1px solid #ddd; /* Bottom border for rows */
+}
+
+.previous-translations th {
+  background: #e0f7fa; /* Light background for header */
+  font-weight: bold; /* Bold header text */
+}
+
+.previous-translations tr:hover {
+  background: #f1f1f1; /* Light background on row hover */
+}
+
+.model-selection {
+  margin-top: 20px;
+}
+
+.model-selection div {
+  flex: 1; /* Allow each div to take equal space */
+}
+
+.model-selection label {
+  display: block; /* Stack labels vertically */
+}
+
+
+
+/* App.css or CompareTranslate.css */
+
+.compare-container {
+  max-width: 800px; /* Adjust as necessary */
+  margin: 40px auto;
+  background: #b4c29f; /* Same background color */
+  padding: 32px; /* Spacious padding */
+  border-radius: 16px; /* Rounded corners */
+  box-shadow: 0 8px 30px rgba(11, 199, 99, 0.1); /* Subtle shadow */
+  text-align: center;
+}
+
+.compare-container h1 {
+  font-size: 2.5em;
+  color: #040413;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px;
+  text-decoration: underline;
+}
+
+.compare-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.compare-container textarea {
+  padding: 16px;
+  font-size: 18px;
+  height: 180px;
+  resize: none;
+  line-height: 1.6;
+  border: 1px solid #023047;
+  border-radius: 8px;
+}
+
+.compare-container select {
+  padding: 10px;
+  border: 1px solid #023047;
+  border-radius: 8px;
+}
+
+.compare-container button {
+  padding: 16px 28px;
+  font-size: 20px;
+  border: none;
+  border-radius: 8px;
+  background: #e63946; /* Button color */
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 300ms, transform 300ms;
+}
+
+.compare-container button:hover {
+  background: #d62839; /* Darker shade on hover */
+  transform: translateY(-2px);
+}
+
+.compare-container .error {
+  color: rgb(134, 226, 13);
+  font-weight: bold;
+}
+
+.translations {
+  padding: 20px;
+  background: #edf2f4; /* Background for translation results */
+  margin-top: 20px;
+  font-size: 18px;
+  line-height: 1.6;
+  border-radius: 8px;
+}
+
+.translations table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.translations th, .translations td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.translations th {
+  background: #e0f7fa; /* Light background for header */
+  font-weight: bold;
+}
+
+.translations tr:hover {
+  background: #f1f1f1;
+}
+.model-selection {
+  display: flex; /* Flexbox to layout model groups */
+  justify-content: space-between; /* Space between two groups */
+  margin-top: 20px; /* Add some spacing above */
+}
+
+.model-group {
+  display: flex; /* Keep items in the group aligned */
+  flex-direction: column; /* Stack items vertically */
+  margin-right: 20px; /* Spacing between groups */
+}
+
+/* Ensure labels are clickable */
+.model-group label {
+  cursor: pointer; /* Change cursor to pointer for better UX */
+}
+
+/* Optional: Add some styling for checkboxes */
+.model-group input[type="checkbox"] {
+  margin-right: 8px; /* Space between checkbox and label */
+}
