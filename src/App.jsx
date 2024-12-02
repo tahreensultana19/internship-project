@@ -314,9 +314,13 @@ import { BeatLoader } from "react-spinners";
 import { createClient } from "@supabase/supabase-js";
 import { Link } from 'react-router-dom';
 
-const supabaseUrl = import.meta.env.REACT_APP_SUPABASE_URL; 
-const supabaseKey = import.meta.env.REACT_APP_SUPABASE_ANON_KEY; 
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseKey = process.env.REACT_APP_SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+// const supabaseUrl = import.meta.env.REACT_APP_SUPABASE_URL; 
+// const supabaseKey = import.meta.env.REACT_APP_SUPABASE_ANON_KEY; 
+// const supabase = createClient(supabaseUrl, supabaseKey);
 
 const App = () => {
   const [formData, setFormData] = useState({
