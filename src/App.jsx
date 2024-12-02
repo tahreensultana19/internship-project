@@ -3,12 +3,19 @@ import "./App.css";
 import { Configuration, OpenAIApi } from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { BeatLoader } from "react-spinners";
-// import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import { Link } from 'react-router-dom';
 
-// const supabaseUrl = import.meta.env.VITE_SUPABASE_URL; 
-// const supabaseKey = import.meta.env.VITE_SUPABASE_KEY; 
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL; 
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY; 
 // const supabase = createClient(supabaseUrl, supabaseKey);
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error("Supabase URL or API key is missing!");
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const App = () => {
   const [formData, setFormData] = useState({
