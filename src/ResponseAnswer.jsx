@@ -318,9 +318,18 @@ import "./App.css";
 import { Link } from "react-router-dom";
 import { Configuration, OpenAIApi } from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createClient } from "@supabase/supabase-js";
 import { BeatLoader } from "react-spinners";
 
+// const supabaseUrl = import.meta.env.VITE_SUPABASE_URL; 
+// const supabaseKey = import.meta.env.VITE_SUPABASE_KEY; 
+// const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+// const supabaseKey = process.env.REACT_APP_SUPABASE_KEY;
+// const supabase = createClient(supabaseUrl, supabaseKey)
+
 const ResponseAnswer = () => {
+  const [loading, setLoading] = useState(true); // State for loading status
+  const [feedbacks, setFeedbacks] = useState([]);
   const [formData, setFormData] = useState({
     inputType: "translation", // Default input type
     toLanguage: "Spanish",
@@ -395,7 +404,26 @@ const ResponseAnswer = () => {
     "Ukrainian": "UK",
     "Vietnamese": "VI",
   };
+  useEffect(() => {
+    const fetchFeedbacks = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('feedback')
+        .select('*')
+        .order('created_at', { ascending: false }); // Order by created_at if desired
 
+      if (error) {
+        setError(error.message);
+      } else {
+        setFeedbacks(data);
+      }
+      setLoading(false);
+    };
+
+    fetchFeedbacks();
+  }, []);
+
+  
   useEffect(() => {
     // Set up speech recognition
     if (window.SpeechRecognition || window.webkitSpeechRecognition) {
@@ -518,6 +546,14 @@ const ResponseAnswer = () => {
       recognition.stop();
     }
   };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
 
   return (
     <div className="container">
@@ -596,6 +632,7 @@ const ResponseAnswer = () => {
                 <th>Response</th>
                 <th>Rating (1-10)</th>
                 <th>Rank</th>
+                <th>Created At</th>
               </tr>
             </thead>
             <tbody>
