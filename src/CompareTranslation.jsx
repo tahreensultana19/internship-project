@@ -4,8 +4,8 @@ import { createClient } from "@supabase/supabase-js";
 import { Configuration, OpenAIApi } from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL; 
-const supabaseKey = import.meta.env.VITE_SUPABASE_KEY; 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const CompareTranslate = () => {
@@ -80,7 +80,6 @@ const CompareTranslate = () => {
 
   const translate = async (model) => {
     const { toLanguage, message, tone } = formData;
-    setIsLoading(true);
     let translatedText = "";
 
     try {
@@ -88,7 +87,7 @@ const CompareTranslate = () => {
         const response = await openai.createChatCompletion({
           model,
           messages: [
-            { role: "system", content: `Translate this sentence into ${toLanguage}. `},
+            { role: "system", content: `Translate this sentence into ${toLanguage}. ` },
             { role: "user", content: message },
           ],
           max_tokens: 100,
@@ -106,26 +105,18 @@ const CompareTranslate = () => {
     } catch (error) {
       console.error("Translation Error:", error);
       setError("Translation failed. Please try again.");
-    } finally {
-      setIsLoading(false);
+      return null;
     }
   };
 
   const saveComparison = async (originalMessage, translation, model, score) => {
     try {
-      const response = await fetch("http://localhost:5000/api/compare_translations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          original_message: originalMessage,
-          translated_message: translation,
-          translation_model: model,
-          score,
-        }),
-      });
+      const { data, error } = await supabase
+        .from("compare_translations")
+        .insert([{ original_message: originalMessage, translated_message: translation, model, score }]);
 
-      if (!response.ok) throw new Error("Failed to save comparison");
-      const data = await response.json();
+      if (error) throw error;
+
       console.log("Comparison saved:", data);
     } catch (error) {
       console.error("Error saving comparison:", error);
@@ -146,8 +137,11 @@ const CompareTranslate = () => {
     try {
       const promises = formData.models.map(async (model) => {
         const translation = await translate(model);
+        if (!translation) return null;
+
         const score = Math.floor(Math.random() * 10) + 1;
-        saveComparison(formData.message, translation, model, score);
+        await saveComparison(formData.message, translation, model, score);
+
         return { model, translation, score };
       });
 

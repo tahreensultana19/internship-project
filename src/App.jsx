@@ -11,9 +11,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY; 
 // const supabase = createClient(supabaseUrl, supabaseKey);
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error("Supabase URL or API key is missing!");
-}
+
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -119,7 +117,6 @@ const App = () => {
       console.log("Translation saved:", data);
     }
   };
-
   const fetchPreviousTranslations = async () => {
     const { data, error } = await supabase
       .from("translations")
