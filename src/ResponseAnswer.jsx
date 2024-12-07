@@ -5,6 +5,7 @@ import { Configuration, OpenAIApi } from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { BeatLoader } from "react-spinners";
 import { createClient } from "@supabase/supabase-js";
+
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -21,6 +22,8 @@ const ResponseAnswer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [recognition, setRecognition] = useState(null);
+  const [performanceAnalysis, setPerformanceAnalysis] = useState({});
+  const [averageScores, setAverageScores] = useState({});
 
   const googleGenAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_API_KEY);
   const configuration = new Configuration({
@@ -37,7 +40,6 @@ const ResponseAnswer = () => {
     "gemini-1.5-flash-002",
     "gemini-1.5-pro-002",
     "deepl",
-    "assembly",
   ];
 
   const supportedLanguages = {
@@ -61,30 +63,43 @@ const ResponseAnswer = () => {
     "Slovenian": "SL", "Spanish": "ES", "Swedish": "SV", "Thai": "TH",
     "Turkish": "TR", "Ukrainian": "UK", "Vietnamese": "VI",
   };
+  const analyzePerformance = () => {
+    const analysis = {};
+    const averages = {};
+
+    responses.forEach((response) => {
+      const { model, type, rating } = response;
+
+      // Initialize model analysis
+      if (!analysis[model]) {
+        analysis[model] = { totalRating: 0, count: 0, typeCounts: { translation: 0, question: 0 } };
+      }
+
+      // Update total rating and count
+      analysis[model].totalRating += rating;
+      analysis[model].count += 1;
+
+      // Count types
+      analysis[model].typeCounts[type] = (analysis[model].typeCounts[type] || 0) + 1;
+    });
+
+    // Calculate average scores and identify top-performing models
+    for (const model in analysis) {
+      const { totalRating, count, typeCounts } = analysis[model];
+      averages[model] = totalRating / count; // Average rating
+      const topType = typeCounts.translation > typeCounts.question ? "translation" : "question";
+      analysis[model].topType = topType; // Identify top type
+    }
+
+    setPerformanceAnalysis(analysis);
+    setAverageScores(averages);
+  };
 
   useEffect(() => {
-    if (window.SpeechRecognition || window.webkitSpeechRecognition) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const recognitionInstance = new SpeechRecognition();
-      recognitionInstance.interimResults = false;
-      recognitionInstance.lang = "en-US";
-
-      recognitionInstance.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setFormData({ ...formData, message: transcript });
-      };
-
-      recognitionInstance.onerror = (event) => {
-        console.error("Speech recognition error:", event.error);
-        setError("Error recognizing speech. Please try again.");
-      };
-
-      setRecognition(recognitionInstance);
-    } else {
-      console.error("Speech recognition not supported in this browser.");
-      setError("Speech recognition is not supported in this browser.");
+    if (responses.length > 0) {
+      analyzePerformance();
     }
-  }, []);
+  }, [responses]);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -150,31 +165,6 @@ const ResponseAnswer = () => {
         }
 
         return { type: "translation", response: data.translations[0]?.text || "No response" };
-      }
-
-      if (model === "assembly") {
-        const proxyUrl = "https://cors-anywhere.herokuapp.com/";
-        const assemblyApiUrl = `${proxyUrl}https://api.assemblyai.com/v2/translate`;
-
-        const response = await fetch(assemblyApiUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_ASSEMBLY_API_KEY}`,
-          },
-          body: JSON.stringify({
-            prompt: formData.inputType === "translation"
-              ? `Translate the text: "${message}" into ${toLang}`
-              : `Answer the question: "${message}"`,
-          }),
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          return { type: "error", response: `Assembly API Error: ${data.error || "Unknown error"}` };
-        }
-
-        return { type: formData.inputType, response: data.response };
       }
 
       const prompt =
@@ -255,9 +245,6 @@ const ResponseAnswer = () => {
       console.error("Error updating response in database:", err.message);
     }
   };
-  
-  
-  
   const handleTranslateOrAnswer = async () => {
     const { inputType, toLanguage, message } = formData;
   
@@ -299,49 +286,109 @@ const ResponseAnswer = () => {
       setIsLoading(false);
     }
   };
+
+  const calculateAverageRatings = (data) => {
+    const modelRatings = {};
+    data.forEach(item => {
+      if (!modelRatings[item.model]) {
+        modelRatings[item.model] = { totalRating: 0, count: 0 };
+      }
+      modelRatings[item.model].totalRating += item.rating;
+      modelRatings[item.model].count += 1;
+    });
   
-  const startListening = () => {
-    if (recognition) {
-      recognition.start();
-    }
+    // Calculate average for each model
+    const averageRatings = Object.keys(modelRatings).map(model => ({
+      model,
+      averageRating: (modelRatings[model].totalRating / modelRatings[model].count).toFixed(2)
+    }));
+  
+    return averageRatings;
+  };
+  const identifyTopPerformingModels = (data) => {
+    const modelRatings = calculateAverageRatings(data);
+    return modelRatings.sort((a, b) => b.averageRating - a.averageRating);
   };
 
-  const stopListening = () => {
-    if (recognition) {
-      recognition.stop();
+  const fetchResponsesFromSupabase = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('responses')
+        .select('*');
+  
+      if (error) {
+        throw error;
+      }
+  
+      return data;
+    } catch (error) {
+      console.error('Error fetching data from Supabase:', error);
+      return [];
     }
   };
+  // Function to convert data to CSV format
+const convertToCSV = (data) => {
+  const header = ["Model", "Average Rating"];
+  const rows = data.map(item => [item.model, item.averageRating]);
 
+  const csvContent = [header, ...rows].map(e => e.join(",")).join("\n");
+  return csvContent;
+};
+
+// Function to download the CSV file
+const downloadCSV = async () => {
+  try {
+    const responses = await fetchResponsesFromSupabase(); // Assume this function fetches your data from Supabase
+    const topPerformingModels = identifyTopPerformingModels(responses);
+    const csvContent = convertToCSV(topPerformingModels);
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "top_performing_models.csv"; // Specify the filename
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url); // Clean up URL object
+  } catch (error) {
+    console.error("Error exporting CSV:", error);
+  }
+};
   return (
     <div className="container">
       <Link to="/" className="back-link">Back to Translation</Link>
-
+  
       <h1>AI Translation & QA App</h1>
-
       <form onSubmit={(e) => e.preventDefault()}>
-        <div className="input-type">
-          <label>
-            <input
-              type="radio"
-              name="inputType"
-              value="translation"
-              checked={formData.inputType === "translation"}
-              onChange={handleInputChange}
-            />
-            Translation
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="inputType"
-              value="question"
-              checked={formData.inputType === "question"}
-              onChange={handleInputChange}
-            />
-            Question
-          </label>
-        </div>
+  <div className="input-type">
+    <label className="label-radio">
+      <input
+        type="radio"
+        name="inputType"
+        value="translation"
+        checked={formData.inputType === "translation"}
+        onChange={handleInputChange}
+      />
+      Translation
+    </label>
+    <label className="label-radio">
+      <input
+        type="radio"
+        name="inputType"
+        value="question"
+        checked={formData.inputType === "question"}
+        onChange={handleInputChange}
+      />
+      Question
+    </label>
+  </div>
 
+
+
+
+
+  
         <textarea
           name="message"
           placeholder={
@@ -352,7 +399,7 @@ const ResponseAnswer = () => {
           value={formData.message}
           onChange={handleInputChange}
         ></textarea>
-
+  
         {formData.inputType === "translation" && (
           <select
             name="toLanguage"
@@ -366,55 +413,81 @@ const ResponseAnswer = () => {
             ))}
           </select>
         )}
-
+  
         {error && <div className="error">{error}</div>}
         <button onClick={handleTranslateOrAnswer}>Submit</button>
       </form>
 
-      <div>
-        <h2>Speech Recognition</h2>
-        <button onClick={startListening}>Start Listening</button>
-        <button onClick={stopListening}>Stop Listening</button>
-      </div>
-
+      <div className="container">
+      
+      <button onClick={downloadCSV} className="export-btn">
+        Export Responses to CSV
+      </button>
+      
+    </div>
       {isLoading ? (
         <BeatLoader size={12} color={"red"} />
       ) : (
         responses.length > 0 && (
-          <table className="response-table">
-            <thead>
-              <tr>
-                <th>Model</th>
-                <th>Type</th>
-                <th>Response</th>
-                <th>Rating (1-10)</th>
-                <th>Rank</th>
-              </tr>
-            </thead>
-            <tbody>
-              {responses.map((response, index) => (
-                <tr key={index}>
-                  <td>{response.model}</td>
-                  <td>{response.type}</td>
-                  <td>{response.response}</td>
-                  <td>
-                    <input
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={response.rating || ""}
-                      onChange={(e) => handleRatingChange(index, e.target.value)}
-                    />
-                  </td>
-                  <td>{response.rank || "N/A"}</td>
+          <div>
+            <table className="response-table">
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th>Type</th>
+                  <th>Response</th>
+                  <th>Rating (1-10)</th>
+                  <th>Rank</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {responses.map((response, index) => (
+                  <tr key={index}>
+                    <td>{response.model}</td>
+                    <td>{response.type}</td>
+                    <td>{response.response}</td>
+                    <td>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={response.rating || ""}
+                        onChange={(e) => handleRatingChange(index, e.target.value)}
+                      />
+                    </td>
+                    <td>{response.rank || "N/A"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+  
+            {/* Performance Analysis Section */}
+            <div className="performance-analysis">
+              <h2>Performance Analysis</h2>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Model</th>
+                    <th>Average Score</th>
+                    <th>Top Type</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.keys(averageScores).map((model) => (
+                    <tr key={model}>
+                      <td>{model}</td>
+                      <td>{averageScores[model].toFixed(2)}</td>
+                      <td>{performanceAnalysis[model]?.topType}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )
       )}
     </div>
-  );
-};
+  )};
 
+    
 export default ResponseAnswer;
