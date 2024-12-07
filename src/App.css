@@ -354,3 +354,42 @@ input[type="radio"]:checked + .label-radio {
 .label-radio:hover::before {
   border-color: #4f0edb; /* Lighter green on hover */
 }
+
+.performance-analysis {
+  margin: 20px; /* Add some margin around the section */
+  font-family: Arial, sans-serif; /* Set a font for the table */
+}
+
+.performance-analysis {
+  margin: 20px; /* Add some margin around the section */
+  font-family: Arial, sans-serif; /* Set a font for the table */
+}
+
+.performance-analysis h2 {
+  text-align: center; /* Center the heading */
+  margin-bottom: 20px; /* Space below the heading */
+}
+
+table {
+  width: 100%; /* Make the table take the full width */
+  border-collapse: collapse; /* Collapse borders for a cleaner look */
+}
+
+th, td {
+  padding: 12px; /* Add padding to table cells */
+  text-align: left; /* Align text to the left */
+  border: 1px solid #ddd; /* Add a light gray border around each cell */
+}
+
+th {
+  background-color: #eaebef; /* Green background for the header */
+  color: rgb(6, 6, 6); /* White text for the header */
+}
+
+tr:hover {
+  background-color: #bdb6b6; /* Light gray background on row hover */
+}
+
+tbody tr{
+  background-color: #edf2f4; /* Light background for even rows */
+}
